@@ -1,0 +1,112 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <script src="https://mimicproject.com/libs/maximilian.js"></script>
+    <meta charset="utf-8">
+</head>
+
+<body>
+</body>
+
+<script>
+
+    var maximJs = maximilian();
+    var maxiAudio = new maximJs.maxiAudio();
+    var piano = new maximJs.maxiSample();
+    var ding = new maximJs.maxiSample();
+    var ring = new maximJs.maxiSample();
+    var hand = new maximJs.maxiSample();
+    var myClock = new maximJs.maxiClock();
+    var myOsc = new maximJs.maxiOsc();
+    var myDelay = new maximJs.maxiDelayline();
+
+    var pianoCount = 9;
+    var pianoPitch = 0.75;
+    var pianoPitch2 = 1.2;
+    var pianoGain = 1.0;
+
+    var ringCount = 8;
+    var ringGain = 1.0;
+    var ringPitch = 0.5;
+
+    var dingPitch = 5.0;
+    var dingGain = 1.0;
+
+    var handGain = 1.0;
+    var handPitch = 0.8
+
+    var myTempo = 60;
+    var delayTime = ((myTempo / 60 * 44100) / 16) * 3;
+    var feedback = 0.6;
+
+
+    myClock.setTempo(myTempo);
+    myClock.setTicksPerBeat(3);
+
+    maxiAudio.init();
+
+    //var beatSlice = 6;
+
+    // you can add files into the document by going to Settings (gear icon) > Files
+    // uncomment this and change the file name to your sample
+    maxiAudio.loadSample('piano.wav', piano);
+    maxiAudio.loadSample('ring.wav', ring);
+    maxiAudio.loadSample('ding.wav', ding);
+    maxiAudio.loadSample('hand.wav', hand);
+    //  maxiAudio.loadSample('引用的文件名稱',在代碼中的名稱);
+
+
+    function drummer() {
+        var out = 0;
+
+        myClock.ticker();
+
+        // the .tick method is a boolean belonging to the maxiClock object tding is either true or false.
+
+        // the .playHead method keeps a running count of the number of beats
+        // We're using modulo (%) to turn the playHead count in to a beat division
+        // e.g. playHead%4 counts 0,1,2,3,0,1,2,3.
+        // The if statement checks to see if there's a tick. If there is one, and 
+        // the playHead%4 is equal to 0, we trigger a piano drum.   
+
+        if (myClock.tick && myClock.playHead % pianoCount === 3) {
+            hand.trigger();
+            pianoGain = 1;
+        }
+
+        if (myClock.tick && Math.random() > 0.8) {
+            piano.trigger();
+            pianoGain = 0.6;
+        }
+
+        if (myClock.tick && myClock.playHead % ringCount === 6) {
+            ringPitch = Math.random() * 2;
+            ring.trigger();
+            ringGain = 1.0;
+        }
+
+        if (myClock.tick && Math.random() > 0.20) {
+            hand.trigger();
+            handGain = 0.4;
+        }
+
+        if (myClock.tick && Math.random() > 0.25) {
+            ding.trigger();
+            dingGain = 1.0;
+        }
+
+        out = ((pianoGain * piano.playOnce(pianoPitch * pianoPitch2)) + (ringGain * ring.playOnce(Math.abs(myOsc.phasor(ringPitch)))) + (dingGain * ding.playOnce(dingPitch))) + (handGain * hand.playOnce(handPitch));
+        return out + myDelay.dl(out, delayTime, feedback);
+    }
+
+    maxiAudio.play = function () {
+
+        //return the output to the speakers.  
+        return drummer();
+
+    }
+
+</script>
+
+</html>

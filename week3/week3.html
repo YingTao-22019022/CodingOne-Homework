@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            background-color: #001D31;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="mycanvas"></canvas>
+    <script>window.onerror = function (error, url, line) { parent.postMessage(["console", "❌ -- [ERROR] -- ❌ -- ⚠️ " + error], "*") }; var cl = console.log; console.log = function () { var msg = [...arguments].join(); parent.postMessage(["console", msg], "*"); }  </script>
+    <script language="javascript" type="text/javascript">
+        let canvas = document.getElementById('mycanvas');
+        let ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        ctx.globalCompositeOperation = "lighter";
+
+        let mouse = {
+            x: null,
+            y: null
+        }
+
+        window.addEventListener('mousemove', function (event) {
+            mouse.x = event.clientX;
+            mouse.y = event.clientY;
+        });
+
+        let maxRadius = 100;
+        let maxSide = 100;
+
+        let colorArray = [
+            '#ffa8d8',
+            '#fe0de2',
+            '#380a8f',
+            '#47f2fe',
+            '#2aff61'
+        ]
+
+        function Ball(x, y, dx, dy, radius, color, globalAlpha) {
+            this.x = x;
+            this.y = y;
+            this.dx = dx;
+            this.dy = dy;
+            this.radius = radius;
+            this.minRadius = radius;
+            this.color = color;
+            this.globalAlpha = globalAlpha;
+
+            this.draw = function () {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.globalAlpha;
+                ctx.fill();
+                ctx.closePath();
+            }
+
+            this.update = function () {
+                if (this.x + this.radius > canvas.width || this.x - this.radius < 0) {
+                    this.dx = -this.dx;
+                }
+
+                if (this.y + this.radius > canvas.height || this.y - this.radius < 0) {
+                    this.dy = -this.dy;
+                }
+
+                this.x += this.dx;
+                this.y += this.dy;
+
+                if (mouse.x - this.x < 50 && mouse.x - this.x > -50 &&
+                    mouse.y - this.y < 50 && mouse.y - this.y > -50) {
+                    if (this.radius < maxRadius) {
+                        this.radius += 2;
+                    }
+                } else if (this.radius > this.minRadius) {
+                    this.radius -= 2;
+                }
+
+                this.draw();
+            }
+        }
+
+        function Square(x, y, dx, dy, side, color) {
+            this.x = x;
+            this.y = y;
+            this.dx = dx;
+            this.dy = dy;
+            this.side = side;
+            this.minSide = side;
+            this.color = color;
+
+            this.draw = function () {
+                ctx.beginPath();
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 3;
+                ctx.strokeRect(this.x, this.y, this.side, this.side);
+                ctx.closePath();
+            }
+
+            this.update = function () {
+                if (this.x + this.side > canvas.width || this.x - this.side < 0) {
+                    this.dx = -this.dx;
+                }
+
+                if (this.y + this.side > canvas.height || this.y - this.side < 0) {
+                    this.dy = -this.dy;
+                }
+
+                this.x += this.dx;
+                this.y += this.dy;
+
+                if (mouse.x - this.x < 50 && mouse.x - this.x > -50 &&
+                    mouse.y - this.y < 50 && mouse.y - this.y > -50) {
+                    if (this.side < maxSide) {
+                        this.side += 2;
+                    }
+                } else if (this.side > this.minSide) {
+                    this.side -= 2;
+                }
+
+                this.draw();
+            }
+        }
+
+        let ballArray;
+        let squareArray;
+
+        function init() {
+            ballArray = [];
+            for (let i = 0; i < 200; i++) {
+                let radius = Math.random() * 4 + 7;
+                let x = Math.random() * (canvas.width - 2 * radius) + radius;
+                let y = Math.random() * (canvas.height - 2 * radius) + radius;
+                let dx = (Math.random() - 0.5) * 1;
+                let dy = (Math.random() - 0.5) * 3;
+                let color = colorArray[Math.floor(Math.random() * 5)];
+                let globalAlpha = (Math.random() / 5) + 7.5;
+                ballArray.push(new Ball(x, y, dx, dy, radius, color, globalAlpha));
+            }
+            squareArray = [];
+            for (let i = 0; i < 300; i++) {
+                let side = Math.random() * 5 + 8;
+                let x = Math.random() * (canvas.width - 2 * side) + side;
+                let y = Math.random() * (canvas.height - 2 * side) + side;
+                let dx = (Math.random() - 0.5) * 2;
+                let dy = (Math.random() - 0.5) * 2;
+                let color = colorArray[Math.floor(Math.random() * 5)];
+                squareArray.push(new Square(x, y, dx, dy, side, color));
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let s of squareArray) {
+                s.update();
+            }
+            for (let b of ballArray) {
+                b.update();
+            }
+
+        }
+
+        init();
+        animate();
+    </script>
+</body>
+
+</html>
